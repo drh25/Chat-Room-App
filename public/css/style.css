@@ -1,0 +1,392 @@
+/* 
+Code adapted from: https://www.cometchat.com/tutorials/how-to-build-a-chat-app-with-websockets-and-node-js
+ Author: Dylan Higgins
+ Created: 04/21/2022 
+ */
+
+@import url('https://fonts.googleapis.com/css?family=Roboto&display=swap');
+
+:root {
+	--dark-color-a: #000000;
+	--dark-color-b: #3e41f5;
+	--light-color: #e0e3f4;
+	--success-color: #65ce65;
+	--error-color: #df3832;
+}
+
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	font-family: 'Roboto', sans-serif;
+	font-style: italic;
+	font-size: 18px;
+	background: var(--light-color);
+	margin: 20px;
+}
+
+ul {
+	list-style: none;
+}
+
+a {
+	text-decoration: none;
+}
+
+.btn {
+	font-family: 'Courier';
+	font-style: normal;
+	font-weight: bold;
+	cursor: pointer;
+	padding: 5px 15px;
+	background: lightgrey;
+	color: var(--dark-color-a);
+	border: 0;
+	font-size: 12px;
+    border-radius: 4px;
+}
+
+/* Chat Page */
+
+.chat-container {
+	max-width: 1100px;
+	background: white;
+	margin: 30px auto;
+	overflow: hidden;
+}
+
+.chat-header {
+	background: var(--dark-color-a);
+	color: white;
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
+	padding: 15px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.chat-main {
+	position:relative;
+	display: grid;
+	grid-template-columns: 1fr 4fr 1.3fr;
+}
+
+.chat-sidebar {
+	background-image: linear-gradient(black, darkgrey);
+	color: #fff;
+	padding: 20px 20px 60px;
+	overflow-y: auto;
+}
+
+.chat-sidebar h2 {
+	font-family: 'Courier', monospace;
+	font-size: 20px;
+	font-style: normal;
+	background: rgba(0, 0, 0, 0.37);
+	padding: 10px;
+	margin-bottom: 20px;
+    text-align: center;
+}
+
+.chat-sidebar h3 {
+	font-family: 'Courier', monospace;
+	font-size: 16px;
+	color: rgb(242, 156, 35);
+	transition: transform .2s;
+	font-style: normal;
+	font-weight: bold;
+	margin-bottom: 15px;
+}
+
+.chat-sidebar h3:hover{
+	transform: scale(1.05);
+}
+.chat-sidebar ul li {
+	padding: 10px 0;
+	font-family: 'Roboto', sans-serif;
+	font-size: 14px;
+	font-style: normal;
+    border-top: .7px solid;
+    border-bottom: .7px solid;
+}
+
+.chat-sidebar::-webkit-scrollbar {
+    width: 1em;
+}
+
+ 
+.chat-sidebar::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+}
+ 
+.chat-sidebar::-webkit-scrollbar-thumb {
+  background-color: darkgrey;
+  outline: 1px solid slategrey;
+}
+
+.chat-messages {
+	
+	font-family: 'Roboto', sans-serif;
+	font-size: 14px;
+	padding: 30px;
+	max-height: 500px;
+	overflow-y: scroll;
+	background-image: url("../assets/twinklestar.gif");
+    background-position: center;
+    background-size: cover;
+}
+
+.chat-messages::-webkit-scrollbar {
+    width: 1em;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+}
+ 
+.chat-messages::-webkit-scrollbar-thumb {
+  background-color: darkgrey;
+  outline: 1px solid slategrey;
+}
+
+.chat-main #feedback{
+	font-family: 'Roboto', sans-serif;
+	color: white;
+	position:absolute;
+	font-size: 12px;
+	bottom: 0px;
+	left: 200px;
+}
+
+.chat-messages .message {
+	font-style: normal;
+	color: black;
+	padding: 10px;
+	margin-bottom: 15px;
+	background: rgba(211, 211, 211, 0.761);
+	transition: all .5s ease;
+	border-radius: 5px;
+
+}
+.chat-messages .message:hover {
+	background: rgba(211, 211, 211);
+}
+
+.chat-messages .message .meta {
+	font-family: 'Courier', sans-serif; 
+	font-size: 15px;
+	font-weight: bold;
+	font-style: normal;
+	color: rgb(7, 92, 212);
+	opacity: 0.7;
+	margin-bottom: 7px;
+    display: flex;
+}
+
+.chat-messages .message .meta span {
+	color: rgb(112, 109, 112);
+    margin-left: auto;
+}
+
+.chat-messages .server.message .meta{
+	color: rgb(154, 53, 154);
+	font-family: 'Courier', monospace;
+	font-size: 14px;
+}
+.chat-messages .server.message .meta span {
+	font-family: 'Courier', monospace;
+	font-size: 14px;
+	color: rgb(112, 109, 112);
+    margin-left: auto;
+}
+
+.chat-form-container {
+	padding: 20px 30px;
+	background-color: var(--dark-color-a);
+}
+
+.chat-form-container form {
+	display: flex;
+}
+
+.chat-form-container input[type='text'] {
+	border-radius: 15px;
+    border: none;
+	transition: transform .2s;
+    font-size: 16px;
+    padding: 10px;
+    height: 40px;
+    flex: 1;
+    outline: none;
+}
+
+.chat-form-container input[type='text']:hover {
+	transform: scale(1.025);
+}
+
+button.btn-rocket {
+    display: block;
+	width: 50px;
+    border-radius: 50px;
+    border: none;
+    background: none;
+    cursor: pointer;
+	padding-left: 20px;
+}
+
+button.btn-rocket:hover{
+	animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
+	transform: translate3d(0, 0, 0);
+	backface-visibility: hidden;
+	perspective: 1000px;
+  }
+
+  @keyframes shake {
+	10%, 90% {
+	  transform: translate3d(-1px, 0, 0);
+	}
+	
+	20%, 80% {
+	  transform: translate3d(2px, 0, 0);
+	}
+  
+	30%, 50%, 70% {
+	  transform: translate3d(-4px, 0, 0);
+	}
+  
+	40%, 60% {
+	  transform: translate3d(4px, 0, 0);
+	}
+  }
+
+i.fas.fa-rocket{
+    font-size: 1.5rem;
+    color: white;
+    outline: none;
+}
+
+/* Join Page */
+.join-container {
+	max-width: 500px;
+	margin: 80px auto;
+	color: #fff;
+}
+
+.join-header {
+	text-align: center;
+	padding: 20px;
+	background: var(--dark-color-a);
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
+}
+
+.join-main {
+	padding: 30px 40px;
+	background-image: url("../assets/saturnrings.gif");
+	background-position: center;
+    background-size: cover;
+    border-bottom-left-radius: 5px;
+	border-bottom-right-radius: 5px;
+}
+
+.join-main p {
+	margin-bottom: 20px;
+}
+
+.join-main form{
+	background-color: rgba(0, 0, 0, 0.393);
+	border-radius: 20px;
+	padding: 20px;
+}
+
+.join-main .form-control {
+	margin-bottom: 20px;
+}
+
+.join-main label {
+	font-family: 'Courier', monospace;
+	font-style: normal;
+	display: block;
+	margin-bottom: 5px;
+}
+
+.join-main input[type='text']  {
+	font-size: 16px;
+	padding: 5px;
+	height: 40px;
+	width: 100%;
+    border-radius: 3px;
+
+}
+
+.join-main input[type='email']  {
+	font-size: 16px;
+    border-radius: 3px;
+	padding: 5px;
+	height: 40px;
+	width: 100%;
+}
+
+.join-main select {
+	font-size: 16px;
+	padding: 5px;
+	height: 40px;
+	width: 100%;
+}
+
+.join-main .btn {
+	margin-top: 20px;
+	width: 100%;
+    border: none;
+
+}
+
+.flex{
+    display: grid;
+    place-content: center;
+}
+
+.chat-rules{
+	background-image: linear-gradient(black, darkgrey);
+	color: white;
+	padding: 10px 20px 60px;
+}
+
+.chat-rules h4 {
+	font-family: 'Courier', monospace;
+	font-size: 16px;
+	font-weight: normal;
+	font-style: italic;
+	padding: 0px 10px;
+	margin-top: 0px;
+	margin-bottom: 20px;
+    text-align: center;
+}
+.chat-rules ol li{
+	font-family: 'Roboto', sans-serif;
+	font-size: 12px;
+	margin-bottom: 10px;
+	font-style: normal;
+	font-weight: normal; 
+}
+
+.chat-rules ol li span{
+	font-family: 'Arial', sans-serif;
+	font-size: 12px;
+	font-weight: bold; 
+}
+@media (max-width: 700px) {
+	.chat-main {
+		display: block;
+	}
+
+	.chat-sidebar {
+		display: none;
+	}
+}
