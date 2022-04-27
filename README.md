@@ -1,2 +1,3 @@
 # Chat Room App
  
+The Saturn Chat Application is a prototype client-server chat room application in which users are able to send and receive messages in real time.  Utilizing Socket.IO, a library of WebSockets, and Node.js, the chat room is created through a HTML website page that generates the messaging thread and its corresponding structure.  Through the usage of event listeners and emitters, the client and server modules are able to transmit data, including when active users are present and typing a message.
